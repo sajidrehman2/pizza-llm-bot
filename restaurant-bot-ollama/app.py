@@ -10,7 +10,8 @@ from datetime import datetime
 from typing import Dict, Any, List, Optional, Tuple
 
 # ---------- Config ----------
-OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434")
+# Get Ollama URL from Streamlit Secrets
+OLLAMA_URL = st.secrets.get("OLLAMA_URL", "http://localhost:11434")
 DEFAULT_MODEL = "gemma:2b"  # small model
 MENU_FILE = "menu.json"
 ORDERS_FILE = "orders.csv"
@@ -175,18 +176,15 @@ def render_custom_header():
     </div>
     """, unsafe_allow_html=True)
 
-def render_connection_status():
+def render_connection_status(ollama_url):
     try:
-        response = requests.get(f"{OLLAMA_URL}/api/tags", timeout=5)
+        response = requests.get(f"{ollama_url}/api/tags", timeout=5)
         if response.status_code == 200:
             status_html = '<span class="status-indicator status-online"></span>Ollama Connected'
-            status_color = "success"
         else:
             status_html = '<span class="status-indicator status-offline"></span>Ollama Disconnected'
-            status_color = "error"
-    except:
-        status_html = '<span class="status-indicator status-offline"></span>Ollama Disconnected'
-        status_color = "error"
+    except Exception as e:
+        status_html = f'<span class="status-indicator status-offline"></span>Connection Error: {str(e)[:50]}'
     
     st.sidebar.markdown(f'**Connection Status:** {status_html}', unsafe_allow_html=True)
 
@@ -339,7 +337,7 @@ def get_price_for_item(table: Dict[str, Any], name: Optional[str], size: Optiona
     try: return float(entry)
     except: return 0.0
 
-def calculate_total_from_summary(order: Dict[str, Any], menu: Dict[str, Any]) -> Tuple[float, List[Dict[str, Any]]]:
+def calculate_total_from_summary(order: Dict[str, Any], menu: Dict[str, Any]) -> Tuple[float, List[Dict[str, Any]]:
     line_items: List[Dict[str, Any]] = []
     total = 0.0
 
@@ -381,28 +379,20 @@ def calculate_total_from_summary(order: Dict[str, Any], menu: Dict[str, Any]) ->
     return round(total, 2), line_items
 
 # ---------- Helpers: Ollama communication ----------
-def call_ollama(model: str, messages: List[Dict[str, str]], timeout: int = 120) -> str:
-    url = f"{OLLAMA_URL}/api/chat"
+def call_ollama(ollama_url: str, model: str, messages: List[Dict[str, str]], timeout: int = 120) -> str:
+    url = f"{ollama_url}/api/chat"
     payload = {"model": model, "messages": messages, "stream": False}
     try:
         r = requests.post(url, json=payload, timeout=timeout)
         r.raise_for_status()
+        data = r.json()
+        return str(data.get("message", {}).get("content", "")).strip()
     except requests.exceptions.ConnectionError:
         return "ERROR: Could not connect to Ollama. Is Ollama running? Try: ollama --version"
     except requests.exceptions.HTTPError as e:
-        return f"ERROR calling Ollama: {r.status_code} {r.text}"
+        return f"ERROR calling Ollama: {e.response.status_code} {e.response.text[:100]}"
     except Exception as e:
-        return f"ERROR calling Ollama: {e}"
-
-    try: data = r.json()
-    except: return r.text or "(no response from model)"
-
-    if isinstance(data, dict):
-        if "message" in data and isinstance(data["message"], dict) and "content" in data["message"]:
-            return str(data["message"]["content"]).strip()
-        if "content" in data: return str(data["content"]).strip()
-        if "response" in data: return str(data["response"]).strip()
-    return json.dumps(data)
+        return f"ERROR: {str(e)}"
 
 # ---------- Helpers: JSON extraction ----------
 def extract_json_from_text(text: str) -> Optional[str]:
@@ -469,9 +459,12 @@ def main():
     menu = load_menu()
     menu_text = menu_to_text(menu)
 
+    # Get Ollama URL from Streamlit Secrets
+    ollama_url = st.secrets.get("OLLAMA_URL", "http://localhost:11434")
+    
     # Sidebar configuration
     st.sidebar.title("⚙️ Restaurant Settings")
-    render_connection_status()
+    render_connection_status(ollama_url)
     
     st.sidebar.markdown("---")
     model_choice = st.sidebar.selectbox(
@@ -481,7 +474,7 @@ def main():
         help="Choose the AI model for order processing"
     )
     
-    st.sidebar.info(f"📡 Ollama URL: {OLLAMA_URL}")
+    st.sidebar.info(f"📡 Ollama URL: {ollama_url}")
     st.sidebar.markdown("Make sure Ollama is running before taking orders!")
     
     if st.sidebar.button("🔄 Reset Chat", use_container_width=True):
@@ -539,7 +532,7 @@ def main():
                 messages_for_model = st.session_state.messages.copy()
                 if messages_for_model and messages_for_model[0].get("role") != "system":
                     messages_for_model.insert(0, system_message(menu_text))
-                reply_text = call_ollama(model_choice, messages_for_model)
+                reply_text = call_ollama(ollama_url, model_choice, messages_for_model)
                 if not reply_text:
                     reply_text = "⚠️ Sorry, I'm having trouble connecting to our ordering system. Please try again!"
                 st.markdown(reply_text)
@@ -558,9 +551,9 @@ def main():
             messages_for_model.append({"role": "user", "content": JSON_ORDER_SCHEMA_INSTRUCTION})
             
             with st.spinner("📋 Preparing your order summary..."):
-                raw = call_ollama(model_choice, messages_for_model)
-                if not raw:
-                    st.error("❌ Could not process order. Please check connection.")
+                raw = call_ollama(ollama_url, model_choice, messages_for_model)
+                if not raw or "ERROR" in raw:
+                    st.error(f"❌ Could not process order: {raw}")
                 else:
                     extracted = extract_json_from_text(raw)
                     if not extracted:
@@ -599,8 +592,7 @@ def main():
                                 df_out.to_csv(ORDERS_FILE, index=False)
                                 st.success("✅ Order saved successfully!")
                         except Exception as e:
-                            st.error("❌ Error processing order summary")
-                            st.exception(e)
+                            st.error(f"❌ Error processing order summary: {str(e)}")
 
     with button_col2:
         if st.button("🧹 New Order", use_container_width=True):
