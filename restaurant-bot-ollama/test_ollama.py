@@ -1,11 +1,9 @@
-# test_ollama.py
-messages = [
-    {"role": "system", "content": "You are friendly."},
-    {"role": "user", "content": "Say hi in 5 words."}
-]
+import requests
 
-# Use a mock response instead of localhost
-r_status = 200
-r_text = "Hello there! Have a great day."
-print(r_status, r_text)
+OLLAMA_URL = "http://localhost:11434"
+try:
+    response = requests.get(f"{OLLAMA_URL}/api/tags", timeout=5)
+    print("Success:", response.status_code, response.json())
+except Exception as e:
+    print("Error:", e)
 
