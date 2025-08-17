@@ -337,7 +337,7 @@ def get_price_for_item(table: Dict[str, Any], name: Optional[str], size: Optiona
     try: return float(entry)
     except: return 0.0
 
-def calculate_total_from_summary(order: Dict[str, Any], menu: Dict[str, Any]) -> Tuple[float, List[Dict[str, Any]]:
+def calculate_total_from_summary(order: Dict[str, Any], menu: Dict[str, Any]) -> Tuple[float, List[Dict[str, Any]]]:
     line_items: List[Dict[str, Any]] = []
     total = 0.0
 
@@ -377,7 +377,6 @@ def calculate_total_from_summary(order: Dict[str, Any], menu: Dict[str, Any]) ->
         line_items.append({"type": "🍟 Side", "name": name.title(), "size": size or "-", "qty": qty, "unit_price": f"${price:.2f}", "total": f"${line_total:.2f}"})
 
     return round(total, 2), line_items
-
 # ---------- Helpers: Ollama communication ----------
 def call_ollama(ollama_url: str, model: str, messages: List[Dict[str, str]], timeout: int = 120) -> str:
     url = f"{ollama_url}/api/chat"
