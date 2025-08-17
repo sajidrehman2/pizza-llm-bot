@@ -1,0 +1,8 @@
+timestamp,delivery_method,address,type,name,size,qty,unit,total,applies_to,order_id,customer_name,phone,items,status,notes,unit_price
+1755432207,pickup,,pizza,Pepperoni,M,1.0,10.0,10.0,,,,,,,,
+1755432207,pickup,,topping,Extra Cheese,,1.0,2.0,2.0,,,,,,,,
+2025-08-17T12:11:10.370976,pickup,hungu,,,,,,0.0,,40a92110,sajid,938937348.0,"[{""type"": ""pizza"", ""name"": """", ""size"": ""S"", ""qty"": 1, ""toppings"": []}, {""type"": ""pizza"", ""name"": ""large"", ""size"": ""S"", ""qty"": 1, ""toppings"": []}, {""type"": ""pizza"", ""name"": ""large"", ""size"": ""S"", ""qty"": 1, ""toppings"": []}, {""type"": ""pizza"", ""name"": ""large"", ""size"": ""S"", ""qty"": 1, ""toppings"": []}]",Pending,arrive at time,
+1755433784,pickup,,🍕 Pizza,Pizza,M,1.0,,0.00,,,,,,,,0.00
+1755433784,pickup,,🥓 Topping,Pepperoni,-,1.0,,0.00,,,,,,,,0.00
+1755433784,pickup,,🥤 Drink,Sprite,-,1.0,,0.00,,,,,,,,0.00
+1755433784,pickup,,🍟 Side,Fries,L,2.0,,0.00,,,,,,,,0.00

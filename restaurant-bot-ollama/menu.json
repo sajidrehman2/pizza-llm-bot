@@ -1,0 +1,24 @@
+{
+  "pizzas": {
+    "Pepperoni": { "S": 7.00, "M": 10.00, "L": 12.95 },
+    "Cheese": { "S": 6.50, "M": 9.25, "L": 10.95 },
+    "Eggplant": { "S": 6.75, "M": 9.75, "L": 11.95 }
+  },
+  "toppings": {
+    "Extra Cheese": 2.00,
+    "Mushrooms": 1.50,
+    "Sausage": 3.00,
+    "Canadian Bacon": 3.50,
+    "AI Sauce": 1.50,
+    "Peppers": 1.00
+  },
+  "sides": {
+    "Fries": { "S": 3.50, "L": 4.50 },
+    "Greek Salad": { "Regular": 7.25 }
+  },
+  "drinks": {
+    "Coke": { "S": 1.00, "M": 2.00, "L": 3.00 },
+    "Sprite": { "S": 1.00, "M": 2.00, "L": 3.00 },
+    "Bottled Water": { "Regular": 5.00 }
+  }
+}
